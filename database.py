@@ -3,13 +3,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
+from urllib.parse import quote_plus
 
 # Load environment variables
 load_dotenv(dotenv_path='secrets.env')
 
 # Get database configuration from environment variables
 DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PASSWORD = quote_plus(os.getenv('DB_PASSWORD'))  # URL encode the password
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 
