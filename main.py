@@ -1,12 +1,28 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Body
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from crud import create_pricing, get_pricing
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+class PricingCreate(BaseModel):
+    meal_plan: str
+    price: float
+    additional_services: str
 
 app = FastAPI(
     title="Meal Delivery API",
     description="API for managing meal delivery pricing and services",
     version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Dependency
@@ -29,14 +45,19 @@ def read_root():
     }
 
 @app.post("/pricing/", summary="Add new pricing plan")
-def add_pricing(meal_plan: str, price: float, additional_services: str, db: Session = Depends(get_db)):
+def add_pricing(pricing: PricingCreate, db: Session = Depends(get_db)):
     """
     Add a new pricing plan with the following information:
     - **meal_plan**: Name of the meal plan
     - **price**: Price of the meal plan
     - **additional_services**: Any additional services included
     """
-    return create_pricing(db=db, meal_plan=meal_plan, price=price, additional_services=additional_services)
+    return create_pricing(
+        db=db,
+        meal_plan=pricing.meal_plan,
+        price=pricing.price,
+        additional_services=pricing.additional_services
+    )
 
 @app.get("/pricing/", summary="Get all pricing plans")
 def read_pricing(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
